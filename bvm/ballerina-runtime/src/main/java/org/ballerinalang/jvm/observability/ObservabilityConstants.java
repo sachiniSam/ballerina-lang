@@ -57,6 +57,7 @@ public class ObservabilityConstants {
     public static final String TAG_KEY_IS_MAIN_ENTRY_POINT = "src.entry_point.main";
     public static final String TAG_KEY_IS_WORKER = "src.worker";
     public static final String TAG_KEY_IS_REMOTE = "src.remote";
+    public static final String TAG_KEY_IS_IF_ELSE_BLOCK = "src.if_else";
 
     public static final String PROPERTY_HTTP_HOST = "host";
     public static final String PROPERTY_HTTP_PORT = "port";

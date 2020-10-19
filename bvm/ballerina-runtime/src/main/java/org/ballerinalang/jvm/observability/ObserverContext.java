@@ -182,7 +182,7 @@ public class ObserverContext {
         return started;
     }
 
-    void setStarted() {
+    public void setStarted() {
         this.started = true;
     }
 

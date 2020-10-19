@@ -32,6 +32,7 @@ import org.wso2.ballerinalang.compiler.PackageCache;
 import org.wso2.ballerinalang.compiler.diagnostic.BLangDiagnostic;
 import org.wso2.ballerinalang.compiler.diagnostic.BLangDiagnosticLocation;
 import org.wso2.ballerinalang.compiler.diagnostic.BLangDiagnosticLog;
+import org.wso2.ballerinalang.compiler.observe.SyntaxTreeObserver;
 import org.wso2.ballerinalang.compiler.packaging.converters.FileSystemSourceInput;
 import org.wso2.ballerinalang.compiler.tree.BLangCompilationUnit;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
@@ -110,6 +111,33 @@ public class Parser {
         String entryName = sourceEntry.getEntryName();
         BLangCompilationUnit compilationUnit;
         SyntaxTree tree = sourceEntry.getTree();
+
+        // Update the Syntax tree to add observability instructions
+        //currently we only modify the user code , in which the org name is not ballerina
+        if (!(packageID.getOrgName().toString().equalsIgnoreCase("ballerina"))){
+
+            SyntaxTree newSyntaxTree = SyntaxTreeObserver.format(tree,packageID,sourceEntry);
+            reportSyntaxDiagnostics(diagnosticSource, newSyntaxTree);
+
+            //TODO: Get hash and length from tree
+            byte[] code = sourceEntry.getCode();
+            int hash = getHash(code);
+            int length = code.length;
+
+            compilationUnit = parserCache.get(packageID, entryName, hash, length);
+            if (compilationUnit != null) {
+                return compilationUnit;
+            }
+
+            BLangNodeTransformer bLangNodeTransformer = new BLangNodeTransformer(this.context, diagnosticSource);
+            compilationUnit = (BLangCompilationUnit) bLangNodeTransformer.accept(newSyntaxTree.rootNode()).get(0);
+            parserCache.put(packageID, entryName, hash, length, compilationUnit);
+            // Node cloner will run for valid ASTs.
+            // This will verify, any modification done to the AST will get handled properly.
+            compilationUnit = nodeCloner.cloneCUnit(compilationUnit);
+            return compilationUnit;
+        }
+
         reportSyntaxDiagnostics(diagnosticSource, tree);
 
         //TODO: Get hash and length from tree

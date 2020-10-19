@@ -189,6 +189,14 @@ public abstract class AbstractNodeFactory {
                         .collect(Collectors.toList())).createUnlinkedFacade());
     }
 
+    public static <T extends Node> SeparatedNodeList<T> createSeparatedNodeList(Collection<T> nodes) {
+        return new SeparatedNodeList<>(STNodeFactory.createNodeList(
+                nodes.stream()
+                        .map(node -> Objects.requireNonNull(node, "node should not be null"))
+                        .map(Node::internalNode)
+                        .collect(Collectors.toList())).createUnlinkedFacade());
+    }
+
     protected static STNode getOptionalSTNode(Node node) {
         return node != null ? node.internalNode() : null;
     }
